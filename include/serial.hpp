@@ -18,19 +18,20 @@ public:
 
     explicit Serial();
 
-    bool open(std::string const& devname,
-              uint baudrate,
-              BoostSerial::parity parity =
-              BoostSerial::parity(
-                  BoostSerial::parity::none),
-              BoostSerial::character_size characterSize =
-              BoostSerial::character_size(8),
-              BoostSerial::flow_control flowControl =
-              BoostSerial::flow_control(
-                  BoostSerial::flow_control::none),
-              BoostSerial::stop_bits stopBits =
-              BoostSerial::stop_bits(
-                  BoostSerial::stop_bits::one));
+    bool open(
+        std::string const& devname,
+        uint baudrate,
+        BoostSerial::parity parity =
+            BoostSerial::parity(
+                BoostSerial::parity::none),
+        BoostSerial::character_size characterSize =
+            BoostSerial::character_size(8),
+        BoostSerial::flow_control flowControl =
+            BoostSerial::flow_control(
+                BoostSerial::flow_control::none),
+        BoostSerial::stop_bits stopBits =
+            BoostSerial::stop_bits(
+                BoostSerial::stop_bits::one));
     void close();
 
     bool isOpen();
@@ -43,8 +44,8 @@ public:
     void setTimeout(std::chrono::milliseconds timeout);
 
 private:
-    class BoostSerialImpl;
-    std::shared_ptr<BoostSerialImpl> _impl;
+    class Impl;
+    std::shared_ptr<Impl> _impl;
 };
 
 }

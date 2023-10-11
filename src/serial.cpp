@@ -18,11 +18,11 @@ namespace Serial
 namespace asio = boost::asio;
 namespace system = boost::system;
 
-class Serial::BoostSerialImpl
-    : public std::enable_shared_from_this<BoostSerialImpl>
+class Serial::Impl
+    : public std::enable_shared_from_this<Impl>
 {
 public:
-    BoostSerialImpl()
+    Impl()
         : _work(_ioc)
         , _port(_ioc)
         , _timer(_ioc)
@@ -31,7 +31,7 @@ public:
             _threads.push_back(std::make_shared<std::thread>([this]() { _ioc.run(); }));
     }
 
-    virtual ~BoostSerialImpl()
+    virtual ~Impl()
     {
         close();
 
@@ -40,19 +40,20 @@ public:
             thread->join();
     }
 
-    bool open(std::string const& devname,
-              uint baudrate,
-              BoostSerial::parity parity =
-              BoostSerial::parity(
-                  BoostSerial::parity::none),
-              BoostSerial::character_size characterSize =
-              BoostSerial::character_size(8),
-              BoostSerial::flow_control flowControl =
-              BoostSerial::flow_control(
-                  BoostSerial::flow_control::none),
-              BoostSerial::stop_bits stopBits =
-              BoostSerial::stop_bits(
-                  BoostSerial::stop_bits::one))
+    bool open(
+        std::string const& devname,
+        uint baudrate,
+        BoostSerial::parity parity =
+            BoostSerial::parity(
+                BoostSerial::parity::none),
+        BoostSerial::character_size characterSize =
+            BoostSerial::character_size(8),
+        BoostSerial::flow_control flowControl =
+            BoostSerial::flow_control(
+                BoostSerial::flow_control::none),
+        BoostSerial::stop_bits stopBits =
+            BoostSerial::stop_bits(
+                BoostSerial::stop_bits::one))
     {
         close();
 
@@ -91,15 +92,19 @@ public:
         std::scoped_lock res(_resultMutex);
 
         _timer.expires_from_now(_timeout);
-        _timer.async_wait(boost::bind(&BoostSerialImpl::_timeoutHandle,
-                                      shared_from_this(),
-                                      asio::placeholders::error));
+        _timer.async_wait(
+            boost::bind(
+                &Impl::_timeoutHandle,
+                shared_from_this(),
+                asio::placeholders::error));
 
-        asio::async_write(_port,
-                          asio::buffer(buffer),
-                          boost::bind(&BoostSerialImpl::_handle,
-                                      shared_from_this(),
-                                      asio::placeholders::error));
+        asio::async_write(
+            _port,
+            asio::buffer(buffer),
+            boost::bind(
+                &Impl::_handle,
+                shared_from_this(),
+                asio::placeholders::error));
 
         _condition.wait(_resultMutex);
 
@@ -117,15 +122,19 @@ public:
         std::scoped_lock res(_resultMutex);
 
         _timer.expires_from_now(_timeout);
-        _timer.async_wait(boost::bind(&BoostSerialImpl::_timeoutHandle,
-                                      shared_from_this(),
-                                      asio::placeholders::error));
+        _timer.async_wait(
+            boost::bind(
+                &Impl::_timeoutHandle,
+                shared_from_this(),
+                asio::placeholders::error));
 
-        asio::async_read(_port,
-                         asio::buffer(buffer),
-                         boost::bind(&BoostSerialImpl::_handle,
-                                     shared_from_this(),
-                                     asio::placeholders::error));
+        asio::async_read(
+            _port,
+            asio::buffer(buffer),
+            boost::bind(
+                &Impl::_handle,
+                shared_from_this(),
+                asio::placeholders::error));
 
         _condition.wait(_resultMutex);
 
@@ -143,19 +152,23 @@ public:
         std::scoped_lock res(_resultMutex);
 
         _timer.expires_from_now(_timeout);
-        _timer.async_wait(boost::bind(&BoostSerialImpl::_timeoutHandle,
-                                      shared_from_this(),
-                                      asio::placeholders::error));
+        _timer.async_wait(
+            boost::bind(
+                &Impl::_timeoutHandle,
+                shared_from_this(),
+                asio::placeholders::error));
 
         if(buffer.size() < len)
             buffer.resize(len);
 
-        asio::async_read(_port,
-                         asio::buffer(buffer),
-                         asio::transfer_at_least(len),
-                         boost::bind(&BoostSerialImpl::_handle,
-                                     shared_from_this(),
-                                     asio::placeholders::error));
+        asio::async_read(
+            _port,
+            asio::buffer(buffer),
+            asio::transfer_at_least(len),
+            boost::bind(
+                &Impl::_handle,
+                shared_from_this(),
+                asio::placeholders::error));
 
         _condition.wait(_resultMutex);
 
@@ -173,17 +186,21 @@ public:
         std::scoped_lock res(_resultMutex);
 
         _timer.expires_from_now(_timeout);
-        _timer.async_wait(boost::bind(&BoostSerialImpl::_timeoutHandle,
-                                      shared_from_this(),
-                                      asio::placeholders::error));
+        _timer.async_wait(
+            boost::bind(
+                &Impl::_timeoutHandle,
+                shared_from_this(),
+                asio::placeholders::error));
 
         boost::asio::streambuf streambuf;
-        asio::async_read_until(_port,
-                               streambuf,
-                               delim,
-                               boost::bind(&BoostSerialImpl::_handle,
-                                           shared_from_this(),
-                                           asio::placeholders::error));
+        asio::async_read_until(
+            _port,
+            streambuf,
+            delim,
+            boost::bind(
+                &Impl::_handle,
+                shared_from_this(),
+                asio::placeholders::error));
 
         _condition.wait(_resultMutex);
 
@@ -203,8 +220,8 @@ public:
         _timeout = timeout;
     }
 
-    BoostSerialImpl(BoostSerialImpl const&) = delete;
-    BoostSerialImpl& operator=(BoostSerialImpl const&) = delete;
+    Impl(Impl const&) = delete;
+    Impl& operator=(Impl const&) = delete;
 
 private:
     void _handle(system::error_code const& ec)
@@ -246,15 +263,16 @@ private:
 };
 
 Serial::Serial()
-    : _impl(std::make_shared<BoostSerialImpl>())
+    : _impl(std::make_shared<Impl>())
 {}
 
-bool Serial::open(std::string const& devname,
-                  uint baudrate,
-                  BoostSerial::parity parity,
-                  BoostSerial::character_size characterSize ,
-                  BoostSerial::flow_control flowControl,
-                  BoostSerial::stop_bits stopBits)
+bool Serial::open(
+    std::string const& devname,
+    uint baudrate,
+    BoostSerial::parity parity,
+    BoostSerial::character_size characterSize ,
+    BoostSerial::flow_control flowControl,
+    BoostSerial::stop_bits stopBits)
 {
     return _impl->open(devname, baudrate, parity, characterSize, flowControl, stopBits);
 }
