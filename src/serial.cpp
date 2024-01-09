@@ -27,7 +27,7 @@ public:
         , _port(_ioc)
         , _timer(_ioc)
     {
-        for(size_t i = 0; i < 2; ++i)
+        for(std::size_t i = 0; i < 2; ++i)
             _threads.push_back(std::make_shared<std::thread>([this]() { _ioc.run(); }));
     }
 
@@ -36,7 +36,7 @@ public:
         close();
 
         _ioc.stop();
-        for(auto& thread : _threads)
+        for(auto& thread: _threads)
             thread->join();
     }
 
